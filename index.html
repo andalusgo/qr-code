@@ -12,7 +12,10 @@
     (function () {
       var STORES = {
         android: "https://play.google.com/store/apps/details?id=uz.prod.andalus.customer_app",
-        ios: "https://apps.apple.com/app/andalus-go/id6757116995"
+        ios: "https://apps.apple.com/app/andalus-go/id6757116995",
+        // Opens the App Store app directly; used inside in-app browsers (Telegram, Instagram…),
+        // where the https link gets stuck on the apps.apple.com web page.
+        iosApp: "itms-apps://apps.apple.com/app/id6757116995"
       };
       var q = location.search;
       var ua = navigator.userAgent || "";
@@ -24,9 +27,13 @@
       else if (/iPhone|iPad|iPod/i.test(ua)) p = "ios";
       else if (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1) p = "ios"; // iPadOS 13+ "desktop mode"
       else if (navigator.userAgentData && /android/i.test(navigator.userAgentData.platform || "")) p = "android";
+      // In-app WebView on iPhone: no "Safari/" token, or the app names itself. Keep in sync with middleware.js.
+      var inApp = p === "ios" && (/[?&]inapp\b/.test(q) || !/Safari\//.test(ua) ||
+        /FBAN|FBAV|Instagram|Telegram|Line\/|MicroMessenger|TikTok|musical_ly|Snapchat/i.test(ua));
       document.documentElement.setAttribute("data-platform", p);
+      if (inApp) document.documentElement.setAttribute("data-inapp", "");
       // replace() keeps this page out of history, so "Back" from the store does not bounce here again.
-      if (p !== "other" && !/[?&]noredirect\b/.test(q)) location.replace(STORES[p]);
+      if (p !== "other" && !/[?&]noredirect\b/.test(q)) location.replace(inApp ? STORES.iosApp : STORES[p]);
     })();
   </script>
   <meta name="description" content="Download the ANDALUS GO app for Android and iPhone. Groceries from Andalus Supermarket delivered to your door.">

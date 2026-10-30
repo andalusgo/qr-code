@@ -11,6 +11,11 @@ const STORES = {
   ios: "https://apps.apple.com/app/andalus-go/id6757116995",
 };
 
+// In-app browsers (Telegram, Instagram, Facebook…) on iPhone cannot hand apps.apple.com over to the
+// App Store app and get stuck on the web page. Real Safari has a "Safari/" token; in-app WebViews
+// usually don't, or add their own name. Those visitors get the page, which opens itms-apps:// instead.
+const IOS_IN_APP = /FBAN|FBAV|Instagram|Telegram|Line\/|MicroMessenger|TikTok|musical_ly|Snapchat/i;
+
 export const config = { matcher: ["/", "/index.html"] };
 
 function redirect(location) {
@@ -27,5 +32,8 @@ export default function middleware(request) {
   const ua = request.headers.get("user-agent") || "";
   if (/Windows Phone|IEMobile/i.test(ua)) return;
   if (/Android/i.test(ua)) return redirect(STORES.android);
-  if (/iPhone|iPad|iPod/i.test(ua)) return redirect(STORES.ios);
+  if (/iPhone|iPad|iPod/i.test(ua)) {
+    if (!/Safari\//.test(ua) || IOS_IN_APP.test(ua)) return; // in-app browser → page handles it
+    return redirect(STORES.ios);
+  }
 }

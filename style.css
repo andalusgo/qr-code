@@ -241,6 +241,18 @@ body {
   .perks { justify-content: flex-start; }
 }
 
+.debug {
+  margin: 20px 0 0;
+  padding: 12px;
+  max-width: 100%;
+  white-space: pre-wrap;
+  word-break: break-all;
+  border-radius: 10px;
+  background: #f4f2f2;
+  font-size: 0.75rem;
+  text-align: left;
+}
+
 /* ---------- Footer ---------- */
 .footer {
   padding: 20px 16px;

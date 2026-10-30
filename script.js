@@ -9,6 +9,8 @@
  * Testing helpers:
  *   ?noredirect   → never auto-redirect (preview the page on a phone)
  *   ?platform=android|ios|other → simulate a platform
+ *   ?inapp        → simulate an in-app browser (with ?platform=ios)
+ *   ?debug        → show the detected platform and the browser's user-agent
  */
 (function () {
   "use strict";
@@ -17,6 +19,7 @@
 
   var statusEl = document.getElementById("status");
   var platform = document.documentElement.getAttribute("data-platform") || "other";
+  var inApp = document.documentElement.hasAttribute("data-inapp");
   var redirecting = platform !== "other" && !/[?&]noredirect\b/.test(window.location.search);
 
   document.getElementById("year").textContent = String(new Date().getFullYear());
@@ -34,9 +37,22 @@
     showStatus("Opening " + storeName + "…");
     window.setTimeout(function () {
       if (document.visibilityState === "visible") {
-        showStatus("Didn’t open? Tap the " + storeName + " button below.");
+        showStatus(inApp
+          ? "Didn’t open? Tap the " + storeName + " button below, or open this link in Safari."
+          : "Didn’t open? Tap the " + storeName + " button below.");
       }
     }, FALLBACK_HINT_MS);
+  }
+
+  // Inside Telegram/Instagram/etc. on iPhone the https App Store link gets stuck — open the App Store app directly.
+  if (inApp) document.getElementById("link-ios").href = "itms-apps://apps.apple.com/app/id6757116995";
+
+  // ?debug — show what this browser reports, to diagnose a new in-app browser.
+  if (/[?&]debug\b/.test(window.location.search)) {
+    var dbg = document.createElement("pre");
+    dbg.className = "debug";
+    dbg.textContent = "platform: " + platform + (inApp ? " (in-app)" : "") + "\n" + navigator.userAgent;
+    document.querySelector(".hero__text").appendChild(dbg);
   }
 
   // Returning via the back/forward cache: just show the page.

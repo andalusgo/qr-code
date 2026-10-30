@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ANDALUS GO QR Generator</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="../assets/logo.png" type="image/png">
+  <style>
+    :root {
+      --brand: #ec2826; --brand-dark: #c11d1a; --brand-soft: #fdeceb;
+      --ink: #161616; --muted: #62605f; --line: #eee8e7; --warn: #9a5b00; --warn-bg: #fff4e0;
+      --err: #b42318; --err-bg: #fdecea;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: #fff; color: var(--ink);
+      font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+    body::before { content: ""; display: block; height: 4px; background: var(--brand); }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 32px 16px 48px; }
+    h1 { margin: 0 0 4px; font-size: 1.6rem; }
+    h1 span { color: var(--brand); }
+    .lead { margin: 0 0 28px; color: var(--muted); }
+    .grid { display: grid; gap: 32px; grid-template-columns: 1fr; }
+    @media (min-width: 820px) { .grid { grid-template-columns: 1fr 380px; } }
+    label { display: block; font-weight: 600; margin-bottom: 6px; }
+    input[type=url] {
+      width: 100%; padding: 12px 14px; font: inherit; border: 1.5px solid var(--line);
+      border-radius: 10px; outline: none;
+    }
+    input[type=url]:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
+    .hint { margin: 6px 0 0; font-size: .875rem; color: var(--muted); }
+    .msg { margin: 12px 0 0; padding: 10px 12px; border-radius: 10px; font-size: .9rem; }
+    .msg.warn { background: var(--warn-bg); color: var(--warn); }
+    .msg.err { background: var(--err-bg); color: var(--err); }
+    .msg.ok { background: #e9f7ef; color: #146c3a; }
+    fieldset { border: 0; padding: 0; margin: 22px 0 0; }
+    legend { font-weight: 600; margin-bottom: 6px; padding: 0; }
+    .opt { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-weight: 400; }
+    select { font: inherit; padding: 8px 10px; border: 1.5px solid var(--line); border-radius: 8px; }
+    .downloads { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 26px; }
+    button {
+      font: inherit; font-weight: 600; padding: 12px 14px; border-radius: 10px; cursor: pointer;
+      border: 2px solid var(--brand); background: var(--brand); color: #fff;
+    }
+    button.secondary { background: #fff; color: var(--brand-dark); }
+    button:hover { background: var(--brand-dark); border-color: var(--brand-dark); color: #fff; }
+    button:disabled { opacity: .45; cursor: not-allowed; background: #ccc; border-color: #ccc; color: #fff; }
+    .preview {
+      border: 1px solid var(--line); border-radius: 14px; padding: 16px; background: #fff;
+      display: flex; align-items: center; justify-content: center; min-height: 380px;
+    }
+    .preview svg { width: 100%; height: auto; display: block; }
+    .preview .empty { color: var(--muted); text-align: center; font-size: .95rem; }
+    .meta { margin: 10px 0 0; font-size: .85rem; color: var(--muted); text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>ANDALUS <span>GO</span> — QR Code Generator</h1>
+    <p class="lead">Creates the one universal print QR code. It must point to your permanent landing page, never directly to a store.</p>
+
+    <div class="grid">
+      <div>
+        <label for="url">Permanent landing page URL</label>
+        <input id="url" type="url" inputmode="url" autocomplete="off" spellcheck="false"
+               placeholder="https://get.andalusgo.com">
+        <p class="hint">Use the final production domain (HTTPS). Changing it later means reprinting every QR code.</p>
+        <div id="msg" class="msg" hidden></div>
+
+        <fieldset>
+          <legend>Options</legend>
+          <label class="opt"><input type="checkbox" id="opt-label" checked> Add label “SCAN TO DOWNLOAD ANDALUS GO”</label>
+          <label class="opt"><input type="checkbox" id="opt-accent" checked> Show “ANDALUS GO” in brand red</label>
+          <label class="opt">Error correction
+            <select id="opt-ecc">
+              <option value="M">M — 15% (smaller, simpler code)</option>
+              <option value="Q">Q — 25%</option>
+              <option value="H" selected>H — 30% (best for print, recommended)</option>
+            </select>
+          </label>
+        </fieldset>
+
+        <div class="downloads">
+          <button id="dl-png" disabled>Download PNG</button>
+          <button id="dl-svg" disabled>Download SVG</button>
+          <button id="dl-png-plain" class="secondary" disabled>PNG (QR only)</button>
+          <button id="dl-svg-plain" class="secondary" disabled>SVG (QR only)</button>
+        </div>
+        <p class="hint">PNG is at least 2000×2000 px of pure QR area. SVG is vector and scales to any print size.</p>
+      </div>
+
+      <div>
+        <div class="preview" id="preview"><p class="empty">Enter your landing page URL to preview the QR code.</p></div>
+        <p class="meta" id="meta"></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/vendor/qrcode.js"></script>
+  <script src="generator.js"></script>
+</body>
+</html>

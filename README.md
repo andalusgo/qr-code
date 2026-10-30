@@ -26,7 +26,7 @@ andalusgoqrcode/
 ├── qr-generator/
 │   ├── index.html          Print QR generator (PNG + SVG)
 │   └── generator.js
-└── print/                  Ready print files for https://uz-rho.vercel.app/
+└── print/                  Ready print files for https://andalusgouz.vercel.app/
 ```
 
 No build step, no dependencies, no framework. Phones never download the page at all on Vercel; the QR library and fonts are only loaded by visitors who stay on the page.

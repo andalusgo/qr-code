@@ -1,12 +1,10 @@
 /*
- * ANDALUS GO — smart app download redirect
+ * ANDALUS GO — landing page UI
  *
- * Android  → Google Play   (automatic)
- * iOS      → App Store     (automatic, incl. iPadOS that reports itself as "Macintosh")
- * Anything else → stays on this page with both buttons + a QR code to scan
- *
- * Store URLs live in index.html (the href of #link-android and #link-ios),
- * so the buttons keep working even if JavaScript is disabled or fails.
+ * The redirect itself happens as early as possible:
+ *   1. middleware.js  — on Vercel's edge, before the page is sent (Android / iPhone)
+ *   2. inline script in <head> of index.html — in the browser, before CSS and images
+ * This file only handles what the visitor sees if they stay on the page.
  *
  * Testing helpers:
  *   ?noredirect   → never auto-redirect (preview the page on a phone)
@@ -15,69 +13,25 @@
 (function () {
   "use strict";
 
-  var REDIRECT_DELAY_MS = 250;   // short pause so the status message paints first
-  var FALLBACK_HINT_MS = 2500;   // if we are still here after this, the redirect was blocked
+  var FALLBACK_HINT_MS = 2500; // still here after this → the redirect was blocked (some in-app browsers)
 
-  var androidLink = document.getElementById("link-android");
-  var iosLink = document.getElementById("link-ios");
   var statusEl = document.getElementById("status");
-  var params = new URLSearchParams(window.location.search);
+  var platform = document.documentElement.getAttribute("data-platform") || "other";
+  var redirecting = platform !== "other" && !/[?&]noredirect\b/.test(window.location.search);
 
   document.getElementById("year").textContent = String(new Date().getFullYear());
-
-  function detectPlatform() {
-    var forced = (params.get("platform") || "").toLowerCase();
-    if (forced === "android" || forced === "ios" || forced === "other") return forced;
-
-    var ua = navigator.userAgent || "";
-
-    // Windows Phone / old Edge Mobile put "Android" and "iPhone" in their UA.
-    if (/Windows Phone|IEMobile/i.test(ua)) return "other";
-
-    if (/Android/i.test(ua)) return "android";
-    if (/iPhone|iPad|iPod/i.test(ua)) return "ios";
-
-    // iPadOS 13+ in default "desktop" mode reports as a Mac; real Macs have no multi-touch.
-    if (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1) return "ios";
-
-    // Chromium client hints (some Android browsers trim the UA string).
-    var uaData = navigator.userAgentData;
-    if (uaData && typeof uaData.platform === "string" && /android/i.test(uaData.platform)) {
-      return "android";
-    }
-
-    return "other";
-  }
-
-  function isConfigured(url) {
-    return /^https:\/\//i.test(url) && url.indexOf("REPLACE_WITH") === -1;
-  }
 
   function showStatus(text) {
     statusEl.textContent = text;
     statusEl.hidden = false;
   }
 
-  function redirect(link, storeName) {
+  function highlight(link, storeName) {
     link.classList.add("is-primary");
-    // Put the matching store first.
-    link.parentNode.insertBefore(link, link.parentNode.firstChild);
+    link.parentNode.insertBefore(link, link.parentNode.firstChild); // matching store first
 
-    if (params.has("noredirect")) return;
-
-    if (!isConfigured(link.href)) {
-      console.warn("[ANDALUS GO] " + storeName + " link is not set in index.html — auto-redirect skipped.");
-      return;
-    }
-
+    if (!redirecting) return;
     showStatus("Opening " + storeName + "…");
-
-    window.setTimeout(function () {
-      // replace() keeps this page out of history, so "Back" from the store does not bounce here again.
-      window.location.replace(link.href);
-    }, REDIRECT_DELAY_MS);
-
-    // Fallback: some in-app browsers (Instagram, Facebook, etc.) block automatic navigation.
     window.setTimeout(function () {
       if (document.visibilityState === "visible") {
         showStatus("Didn’t open? Tap the " + storeName + " button below.");
@@ -85,7 +39,7 @@
     }, FALLBACK_HINT_MS);
   }
 
-  // Returning via the back/forward cache: show the page instead of redirecting again.
+  // Returning via the back/forward cache: just show the page.
   window.addEventListener("pageshow", function (event) {
     if (event.persisted) statusEl.hidden = true;
   });
@@ -120,13 +74,10 @@
     document.body.appendChild(script);
   }
 
-  var platform = detectPlatform();
-  document.documentElement.setAttribute("data-platform", platform);
-
   if (platform === "android") {
-    redirect(androidLink, "Google Play");
+    highlight(document.getElementById("link-android"), "Google Play");
   } else if (platform === "ios") {
-    redirect(iosLink, "App Store");
+    highlight(document.getElementById("link-ios"), "App Store");
   } else {
     renderDesktopQr();
   }

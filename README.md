@@ -16,31 +16,38 @@ The QR code points to **your landing page**, never directly to a store, so it st
 
 ```
 andalusgoqrcode/
-├── index.html              Landing page (store links are set here)
+├── middleware.js           Vercel edge redirect for phones (fastest path)
+├── index.html              Landing page + instant in-browser redirect in <head>
 ├── style.css               Styles (white + ANDALUS GO red, matched to the logo)
-├── script.js               Device detection + redirect + fallback
+├── script.js               Page UI: highlighted store, fallback hint, desktop QR
 ├── assets/
-│   ├── logo.svg            Logo PLACEHOLDER — replace with the real logo
+│   ├── logo.png            ANDALUS GO logo
 │   └── vendor/qrcode.js    QR library (qrcode-generator 1.4.4, MIT, Kazuhiko Arase)
-└── qr-generator/
-    ├── index.html          Print QR generator (PNG + SVG)
-    └── generator.js
+├── qr-generator/
+│   ├── index.html          Print QR generator (PNG + SVG)
+│   └── generator.js
+└── print/                  Ready print files for https://uz-rho.vercel.app/
 ```
 
-No build step, no dependencies, no framework. Total page weight is ~10 KB (the QR library is only loaded on desktop).
+No build step, no dependencies, no framework. Phones never download the page at all on Vercel; the QR library and fonts are only loaded by visitors who stay on the page.
 
 ---
 
 ## Step 1 — Store links (already set)
 
-The links are the `href` values of `#link-android` and `#link-ios` in `index.html`:
+The links appear in **three places** — change all of them together:
+
+1. `middleware.js` — the `STORES` object (edge redirect)
+2. `index.html` — the `STORES` object in the `<script>` inside `<head>` (browser redirect)
+3. `index.html` — the `href` of `#link-android` and `#link-ios` (buttons, also work without JavaScript)
+
+Current links:
 
 - Google Play: `https://play.google.com/store/apps/details?id=uz.prod.andalus.customer_app`
 - App Store: `https://apps.apple.com/app/andalus-go/id6757116995`
 
 The App Store link has no country code (`/ru/`, `/uz/`…) on purpose, so every visitor gets the App Store of their own country.
 
-This is the **only** place the links live. The buttons and the automatic redirect both read from them. If a link ever contains `REPLACE_WITH` or is not `https://`, the automatic redirect for that platform switches off (a warning appears in the browser console), so visitors never land on a broken store page.
 
 ## Step 2 — Logo (already set)
 
@@ -119,13 +126,16 @@ After deployment, open the URL on a computer: you should see the landing page wi
 
 ## How it works
 
-1. **Detection** (`script.js`, `detectPlatform`):
-   - `Android` in the user-agent → Android (checked after excluding Windows Phone, whose UA also contains "Android").
+The redirect happens as early as possible, in two layers:
+
+1. **Edge redirect** (`middleware.js`, Vercel only): Vercel reads the phone's user-agent and answers with a `302` straight to the store. The landing page is never downloaded, so the store opens right after the scan.
+2. **Browser redirect** (inline `<script>` at the top of `index.html`): catches what the edge cannot see — iPads in "desktop mode" and hosts other than Vercel. It runs before any CSS, fonts or images load.
+   - `Android` in the user-agent → Android (after excluding Windows Phone, whose UA also contains "Android").
    - `iPhone|iPad|iPod` → iOS.
    - iPadOS 13+ pretends to be a Mac; it is detected as iOS when the UA says `Macintosh` **and** the device has multi-touch (`navigator.maxTouchPoints > 1`). Real Macs have no touch screen.
    - Chromium User-Agent Client Hints are used as an extra Android check.
    - Everything else → landing page.
-2. **Redirect** uses `location.replace()`, so the landing page is not kept in browser history and "Back" from the store does not bounce the visitor into the store again.
+   - Uses `location.replace()`, so "Back" from the store does not bounce the visitor into the store again.
 3. **Fallbacks**
    - The store buttons are plain links in the HTML, so they work even if JavaScript is disabled or fails to load.
    - If a redirect is blocked (some in-app browsers), after 2.5 seconds the page shows "Didn't open? Tap the … button below." with the correct store button highlighted and listed first.
@@ -133,7 +143,7 @@ After deployment, open the URL on a computer: you should see the landing page wi
 
 ## Updating later
 
-- **Store links changed?** Edit the two `href`s in `index.html` and redeploy. The printed QR code does not change.
+- **Store links changed?** Edit the three places listed in Step 1 and push to GitHub (Vercel redeploys automatically). The printed QR code does not change.
 - **Moving to another host?** Deploy the same files there and point the domain's DNS to the new host. The printed QR code does not change.
 - **Never** change the URL that is encoded in the printed QR code.
 

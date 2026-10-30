@@ -6,8 +6,8 @@
   --muted: #62605f;
   --line: #eee8e7;
   --bg: #ffffff;
-  --radius: 14px;
-  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --radius: 16px;
+  --font: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 *,
@@ -21,84 +21,95 @@ body {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background: var(--bg);
   color: var(--ink);
   font-family: var(--font);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-}
-
-/* Thin brand-red accent along the top edge */
-body::before {
-  content: "";
-  display: block;
-  height: 4px;
-  background: var(--brand);
+  /* White page with a soft brand-red glow behind the hero */
+  background:
+    radial-gradient(60rem 28rem at 50% -8rem, rgba(236, 40, 38, 0.10), transparent 70%),
+    var(--bg);
 }
 
 .page {
   flex: 1;
   width: 100%;
-  max-width: 560px;
+  max-width: 1040px;
   margin: 0 auto;
-  padding: clamp(40px, 9vh, 96px) 20px 32px;
+  padding: clamp(28px, 7vh, 88px) 16px 32px;
+  display: flex;
+  align-items: center;
+}
+
+/* ---------- Hero ---------- */
+.hero {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 40px;
+  align-items: center;
+}
+
+.hero__text {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
 }
 
-/* ---------- Brand ---------- */
-/* The logo PNG has its own white margin, so it sits directly on the page. */
-.brand__logo {
-  width: clamp(200px, 60vw, 260px);
+/* The logo PNG has its own white margin; multiply hides it on the tinted background. */
+.hero__logo {
+  width: clamp(150px, 42vw, 190px);
   height: auto;
   display: block;
-  margin: -24px auto 0;
-  mix-blend-mode: multiply; /* hides the image's slightly off-white background */
+  margin: -12px 0 4px;
+  mix-blend-mode: multiply;
 }
 
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-  border: 0;
+.hero__title {
+  margin: 0;
+  max-width: 16ch;
+  font-size: clamp(1.85rem, 6.4vw, 3.1rem);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
 }
 
-.brand__tagline {
-  margin: 4px auto 0;
-  max-width: 34ch;
+.hero__title span { color: var(--brand); }
+
+.hero__lead {
+  margin: 14px 0 0;
+  max-width: 40ch;
   color: var(--muted);
   font-size: 1.0625rem;
+  font-weight: 500;
 }
 
 /* ---------- Redirect status ---------- */
 .status {
-  margin: 28px 0 0;
-  padding: 10px 16px;
+  margin: 22px 0 0;
+  padding: 10px 18px;
   border-radius: 999px;
   background: var(--brand-soft);
   color: var(--brand-dark);
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 700;
 }
+
+.status[hidden], .scan[hidden] { display: none; }
 
 /* ---------- Store buttons ---------- */
 .stores {
-  margin-top: 36px;
+  margin-top: 28px;
   width: 100%;
+  max-width: 440px;
   display: grid;
   grid-template-columns: 1fr;
   gap: 12px;
 }
 
-@media (min-width: 520px) {
+@media (min-width: 480px) {
   .stores { grid-template-columns: 1fr 1fr; }
 }
 
@@ -107,17 +118,17 @@ body::before {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  min-height: 60px;
-  padding: 10px 20px;
+  min-height: 62px;
+  padding: 10px 18px;
   border-radius: var(--radius);
   background: var(--ink);
   color: #fff;
   text-decoration: none;
-  border: 2px solid var(--ink);
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  box-shadow: 0 8px 20px -10px rgba(0, 0, 0, 0.45);
+  transition: background-color 0.15s ease, transform 0.15s ease;
 }
 
-.store-btn:hover { background: var(--brand-dark); border-color: var(--brand-dark); }
+.store-btn:hover { background: #000; transform: translateY(-1px); }
 
 .store-btn:focus-visible {
   outline: 3px solid var(--brand);
@@ -125,8 +136,11 @@ body::before {
 }
 
 /* Detected platform's button is highlighted in brand red */
-.store-btn.is-primary { background: var(--brand); border-color: var(--brand); }
-.store-btn.is-primary:hover { background: var(--brand-dark); border-color: var(--brand-dark); }
+.store-btn.is-primary {
+  background: var(--brand);
+  box-shadow: 0 10px 24px -10px rgba(236, 40, 38, 0.7);
+}
+.store-btn.is-primary:hover { background: var(--brand-dark); }
 
 .store-btn__icon {
   width: 26px;
@@ -140,52 +154,96 @@ body::before {
   flex-direction: column;
   align-items: flex-start;
   font-size: 1.25rem;
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1.1;
+  letter-spacing: -0.01em;
 }
 
 .store-btn__text small {
   font-size: 0.6875rem;
-  font-weight: 500;
-  letter-spacing: 0.04em;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   opacity: 0.85;
 }
 
-/* ---------- Desktop scan block ---------- */
-.scan {
-  margin-top: 44px;
-  padding-top: 36px;
-  border-top: 1px solid var(--line);
-  width: 100%;
+/* ---------- Perks ---------- */
+.perks {
+  list-style: none;
+  margin: 28px 0 0;
+  padding: 0;
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
 }
 
-.scan[hidden], .status[hidden] { display: none; }
+.perks li {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.perks svg {
+  width: 16px;
+  height: 16px;
+  fill: var(--brand);
+}
+
+/* ---------- Desktop scan card ---------- */
+.scan {
+  justify-self: center;
+  width: 100%;
+  max-width: 300px;
+  padding: 28px 24px 24px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 24px 48px -28px rgba(22, 22, 22, 0.35);
+  text-align: center;
+}
 
 .scan__code {
-  width: 184px;
-  height: 184px;
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  width: 200px;
+  height: 200px;
+  margin: 0 auto;
+  padding: 8px;
+  border-radius: 12px;
   background: #fff;
+  outline: 3px solid var(--brand-soft);
 }
 
 .scan__code svg { display: block; width: 100%; height: 100%; }
 
+.scan__title {
+  margin: 18px 0 0;
+  font-weight: 800;
+  font-size: 1.0625rem;
+}
+
 .scan__text {
-  margin: 16px 0 0;
-  max-width: 30ch;
+  margin: 4px 0 0;
   color: var(--muted);
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
+}
+
+/* Two columns on wide screens: text left, QR card right */
+@media (min-width: 900px) {
+  .hero { grid-template-columns: 1fr 300px; gap: 72px; }
+  .hero__text { align-items: flex-start; text-align: left; }
+  .hero__logo { margin-left: -18px; }
+  .perks { justify-content: flex-start; }
 }
 
 /* ---------- Footer ---------- */
 .footer {
-  padding: 20px;
+  padding: 20px 16px;
   text-align: center;
   color: var(--muted);
   font-size: 0.8125rem;
